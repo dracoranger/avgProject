@@ -71,8 +71,9 @@ const int pingFront = 7;
 const int pingSide = 8;
 const int WHISKER_LEFT = 2;
 const int WHISKER_RIGHT = 3;
-const int lightSensor = 5;
-const int tapeDetect= 9;
+const int LIGHT_SENSOR = 5;
+const int TAPE_DETECT= 9;
+const int IR_LED=6;
 
 // Sets up bool for light
 bool isDarkRoom=false;
@@ -110,12 +111,15 @@ const int dur = 2;  // counter duration 2 is the minimun setting to
 
 void setup() {
   // initialize serial communication:
-  Serial.begin(9600);
-
+  pinMode(LIGHT_SENSOR, INPUT);
+  pinMode(TAPE_DETECT, INPUT);
+  pinMode(WHISKER_LEFT,INPUT);
+  pinMode(WHISKER_RIGHT,INPUT);
+  pinMode(IR_LED,OUTPUT);
   right.attach(10);   // attaches the servo on pin 10 to the servo object
   left.attach(11);
   //This is one of the servo ports on the Parallax shield. Others are 11, 12, and 13
-
+  Serial.begin(9600);
   for (i = 0; i < dur; i++ )
  {
   right.writeMicroseconds(1500);    // motor stop
@@ -160,8 +164,7 @@ void setup() {
   delay(15);
   }
 
-  pinMode(WHISKER_LEFT,INPUT);
-  pinMode(WHISKER_RIGHT,INPUT);
+
 
 }
 
@@ -180,6 +183,20 @@ void loop() {
 
   // The PING))) is triggered by a HIGH pulse of 2 or more microseconds.
   // Give a short LOW pulse beforehand to ensure a clean HIGH pulse:
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
+  tapePresent();
+
   pinMode(pingFront, OUTPUT);
   digitalWrite(pingFront, LOW);
   delayMicroseconds(2);
@@ -214,7 +231,11 @@ void loop() {
 
   //TODO: initialize light detection
 
-
+  Serial.print("IR input Front: ");
+  Serial.print(digitalRead(LIGHT_SENSOR));
+  Serial.print(" IR input Side: ");
+  Serial.print(digitalRead(TAPE_DETECT));
+  Serial.print(" ");
   Serial.print(inchesF);
   Serial.print("in, ");
   Serial.print(cmF);
@@ -438,6 +459,7 @@ int driveBackwardsLong(){
  * You need to give at least a comment here.  Hopefully many more
  */
 int detectLightInit(){//Detects the level of light and hopefully determines if we're in the right room
+
   if(true){//TODO holder value.
 
     return -1;
@@ -450,11 +472,18 @@ int detectLightInit(){//Detects the level of light and hopefully determines if w
 
 bool tapePresent(){
   //Detects whether or not there's tape on the ground
-  return false;
+  int input=digitalRead(TAPE_DETECT);
+  if(input==0){
+    //Light detected, no tape
+    return false;
+  }
+  else{
+    return true;
+  }
 }
 
 bool whiskerLeft(){
-  if(digitalRead(WHISKER_LEFT)==0){
+  if(digitalRead(WHISKER_LEFT)==1){
     return true;
   }
   else{
@@ -464,7 +493,7 @@ bool whiskerLeft(){
 }
 
 bool whiskerRight(){
-  if(digitalRead(WHISKER_RIGHT)==0){
+  if(digitalRead(WHISKER_RIGHT)==1){
     return true;
   }
   else{
