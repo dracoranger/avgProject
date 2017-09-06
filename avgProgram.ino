@@ -22,6 +22,44 @@
   This example code is in the public domain.
 
   http://www.arduino.cc/en/Tutorial/Ping
+
+  #include <Servo.h>
+Servo Lservo;  // create servo object to control a servo
+Servo Rservo;
+
+int i = 0;  // analog pin used to connect the potentiometer
+const int dur = 10;    // variable to read the value from the analog pin
+
+void setup() {
+  Lservo.attach(12);  // attaches the servo on pin 9 to the servo object
+  Rservo.attach(13);
+}
+
+void loop() {                 // sets the servo position according to the scaled value
+  forward();
+  delay(6000);
+  delay(1500);
+  reverse();
+  delay(6000);
+  stopRobot();
+}
+
+//Motion routines for robot
+void forward() {
+  Lservo.writeMicroseconds(1250);
+  Rservo.writeMicroseconds(1250);
+}
+
+void reverse() {
+  Lservo.writeMicroseconds(1650);
+  Rservo.writeMicroseconds(1650);
+}
+
+void stopRobot() {
+  Lservo.detach();
+  Rservo.detach();
+}
+
 */
 
 
@@ -41,6 +79,7 @@ bool isDarkRoom=false;
 //sets up whether or not was on wall
 //used to differentiate between the wall and random obsticles
 int byWall=0;
+bool scanningLeft=false;
 
 
 //Constant values, used to clean up if statements rather than worry about them being inconsistent
@@ -153,7 +192,7 @@ void setup() {
 void loop() {
   /*
    * Deal with Everything else
-   * TODO: Movement controls, whiskers, lighting, space out the delayMicrosecond?
+   * TODO: whiskers, lighting, space out the delayMicrosecond?
    * 8/29 moved before AI to make sure that AI has the ability to use set vaiables and it compiles, which isn't necessarily unexpected
    *
   */
@@ -197,6 +236,7 @@ void loop() {
 
   //TODO: Whisker alert
 
+  //TODO: initialize light detection
 
 
   Serial.print(inchesF);
@@ -212,18 +252,67 @@ void loop() {
     * The set behaviors of the robot are designated here
     *
     */
+    //TEMPS while not implemented
+    //bool tapePresent = false;
 
-  if(whiskerLeft||whiskerRight){
+
+  if(whiskerLeft()||whiskerRight()){
     //STOP AND REVERSE, whiskers detected something's right in front of us
     //Turn as well?  Don't want to get stuck in an infinite loop
+    driveBackwards();
+    if(whiskerLeft){
+      shiftRight();
+      shiftRight();
+      shiftRight();
+      shiftRight();
+    }
+    else{
+      shiftLeft();
+      shiftLeft();
+      shiftLeft();
+      shiftLeft();
+    }
   }
   else if(isDarkRoom){
     //Head Towards the Light
     //deal with obsticles
     //basically recreate AI within this section, keeping the about to crash paramount
     //use light in front as director.  Need to worry about being attracted to the light from the door
+
+    //might have an issue with the search function.  Not entirely sure how to implement
+    //Might want to create a function before this which detects something in front and to the Side
+    //if true, turn to 225 or so and go forward, so diagional round the room
+    curr=0
+    while(detectLightInit()!=1|| curr!=18){
+      if(scanningLeft){
+        shiftLeft();
+      }
+      else{
+        shiftRight();
+      }
+      curr++
+    }
+    if(detectLightInit()==1){//Not sure if this will keep it centered on the light
+      driveForward;
+    }
+    else{
+      if(scanningLeft){
+        shiftRight();
+        shiftRight();
+        shiftRight();
+        shiftRight();
+      }
+      else{
+        shiftLeft();
+        shiftLeft();
+        shiftLeft();
+        shiftLeft();
+      }
+      driveForward();
+      scanningLeft= !scanningLeft;
+    }
   }
-  else if(inchesS-CLO>FAR&&byWall>WALL_SAFE&&!tapePresent){
+  else if(inchesS-CLO>FAR&&byWall>WALL_SAFE&&!tapePresent()){
     //Discovered a Door.  Go investigate
     //Value of the distance between the robot and the wall suddenly increased by at least 18 inches, either a door or we got around a large obsticle
     //Need to worry about the large obsticle, hopefully byWall is helpful here
@@ -237,32 +326,44 @@ void loop() {
     else{
       driveBackwardsLong();
       turnLeft();//reverse the turn right
+      driveForwardLong();
     }
   }
   else if(inchesF>FAR_FRONT&&inchesS>FAR_SIDE&&byWall==0){
     //in the middle of the room Go forward
+    driveForward();
   }
   else if(inchesF<FAR_FRONT && byWall==0){
     //reached the wall for the first time, turn left
     //Need to alter based on where turning brings us in relation to a wall
-
+    driveForward();
+    turnLeft();
+    driveForward();
+    byWall=byWall+1;
   }
-  else if(inchesF>FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent)){
+  else if(inchesF>FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent())){
     //discovered the wall, continue along it in relative safety
     //increase byWall
-
+    driveForward();
+    byWall=byWall+1;
   }
   else if(inchesF>FAR_FRONT && inchesS<CLO){
     //discovered the wall, continue along it, shift to the left to prevent running into it
-
+    shiftLeft();
+    driveForward();
+    byWall=byWall+1;
   }
   else if(inchesF>FAR_FRONT && inchesS>FAR && inchesS<FAR_SIDE){
     //discovered the wall, continue along it, shifted to the right to prevent driving too far away
-
+    shiftRight();
+    driveForward();
+    byWall=byWall+1;
   }
-  else if(inchesF<FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent) && byWall> WALL_SAFE){
+  else if(inchesF<FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent()) && byWall> WALL_SAFE){
     //discovered a turn, so lets turn
-
+    turnLeft();
+    driveForward();
+    byWall=byWall+1;
   }
   else{
     //we suddenly found a large gap or something early on.
@@ -270,7 +371,8 @@ void loop() {
     //think reset byWall to 0 and basically act as if we are just entering the room for the first time.
     //Really need to test this, probably the best idea to revert to careful without assumptions in this case.
     //May want to check how much byWall there is, because we could lose a good amount of certainty otherwise.
-
+    byWall=0;
+    driveForward();
   }
  }
 
@@ -281,6 +383,9 @@ void loop() {
  * They're designed to be opposites of each other to allow for some level of control
  */
 
+ const int lTime = 6000;
+ const int sTime= lTime/4;
+
 int turnRight(){
   for(int i=0; i<T_90_TURN; i++){
     right.writeMicroseconds(2000);
@@ -290,7 +395,10 @@ int turnRight(){
 }
 
 int shiftRight(){
-
+  for(int i=0; i<T_90_TURN/9; i++){
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(1000);
+  }
   return 1;
 }
 
@@ -303,28 +411,46 @@ int turnLeft(){
 }
 
 int shiftLeft(){
-
+  for(int i=0; i<T_90_TURN/9; i++){
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(2000);
+  }
   return 1;
 }
 
 int driveForward(){
-
+  for(int i=0; i<T_1_FOOT; i++){
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(1000);
+  }
   return 1;
 }
 int driveForwardLong(){
-
+  for(int i=0; i<T_1_FOOT*2; i++){
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(1000);
+  }
   return 1;
 }
 int driveForward4Ft(){
-
+  for(int i=0; i<T_4_FEET; i++){
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(1000);
+  }
   return 1;
 }
 int driveBackwards(){
-
+  for(int i=0; i<T_1_FOOT; i++){
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(2000);
+  }
   return 1;
 }
 int driveBackwardsLong(){
-
+  for(int i=0; i<T_1_FOOT*2; i++){
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(2000);
+  }
   return 1;
 }
 
@@ -345,6 +471,16 @@ int detectLightInit(){//Detects the level of light and hopefully determines if w
 
 bool tapePresent(){
   //Detects whether or not there's tape on the ground
+  return false;
+}
+
+bool whiskerLeft(){
+  false;
+
+}
+
+bool whiskerRight(){
+  false;
 
 }
 
