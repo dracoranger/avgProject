@@ -137,21 +137,6 @@ void setup() {
   delay(15);
   }
 
-
-// test that code did what it was supposed to do (omit or replace with your algorithm)
-  for (i = 0; i< dur*100; i++)
-  {
-     right.writeMicroseconds(1250);     // half speed in one direction
-     delay(15);
-  }
-    for (i = 0; i< dur*100; i++)
-  {
-     right.writeMicroseconds(1750);     // half speed in one direction
-     delay(15);
-  }
-   right.writeMicroseconds(1500);    // motor stop
-
-
   for (i = 0; i < dur; i++ )
  {
   left.writeMicroseconds(1500);    // motor stop
@@ -174,18 +159,8 @@ void setup() {
   delay(15);
   }
 
-// test that code did what it was supposed to do (omit or replace with your algorithm)
-  for (i = 0; i< dur*100; i++)
-  {
-     left.writeMicroseconds(1250);     // half speed in one direction
-     delay(15);
-  }
-    for (i = 0; i< dur*100; i++)
-  {
-     left.writeMicroseconds(1750);     // half speed in one direction
-     delay(15);
-  }
-   left.writeMicroseconds(1500);    // motor stop
+  pinMode(whiskerLeft,INPUT);
+  pinMode(whiskerRight,INPUT);
 
 }
 
@@ -234,7 +209,7 @@ void loop() {
   inchesS = microsecondsToInches(duration);
   cmS = microsecondsToCentimeters(duration);
 
-  //TODO: Whisker alert
+  // Whisker alert Done in functions below and static
 
   //TODO: initialize light detection
 
@@ -242,7 +217,10 @@ void loop() {
   Serial.print(inchesF);
   Serial.print("in, ");
   Serial.print(cmF);
-  Serial.print("cm");
+  Serial.print("cm. WhiskerLeft:");
+  Serial.print(whiskerLeft());
+  Serial.print(" whiskerRight");
+  Serial.print(whiskerRight());
   Serial.println();
 
   delay(100);//Do we really want a serious delay?
@@ -475,13 +453,22 @@ bool tapePresent(){
 }
 
 bool whiskerLeft(){
-  false;
+  if(digitalRead(whiskerLeft)==0){
+    return true;
+  }
+  else{
+    return false;
+  }
 
 }
 
 bool whiskerRight(){
-  false;
-
+  if(digitalRead(whiskerRight)==0){
+    return true;
+  }
+  else{
+    return false;
+  }
 }
 
 long microsecondsToInches(long microseconds) {
