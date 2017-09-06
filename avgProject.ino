@@ -66,10 +66,11 @@ void stopRobot() {
 #include <Servo.h>
 
 // this constant won't change. It's the pin number of the sensor's output:
+//Probably should capitalize
 const int pingFront = 7;
 const int pingSide = 8;
-const int whiskerLeft = 2;
-const int whiskerRight = 3;
+const int WHISKER_LEFT = 2;
+const int WHISKER_RIGHT = 3;
 const int lightSensor = 5;
 const int tapeDetect= 9;
 
@@ -98,8 +99,8 @@ const int T_4_FEET=4000;
 //On second run, change behavior to try safer tactics?
 
 
-Servo myservo;  // create servo object to control a servo
-                // twelve servo objects can be created on most boards
+Servo right;  // create servo object to control a servo
+Servo left;              // twelve servo objects can be created on most boards
 
 int i = 0;      // loop counter
 const int dur = 2;  // counter duration 2 is the minimun setting to
@@ -159,8 +160,8 @@ void setup() {
   delay(15);
   }
 
-  pinMode(whiskerLeft,INPUT);
-  pinMode(whiskerRight,INPUT);
+  pinMode(WHISKER_LEFT,INPUT);
+  pinMode(WHISKER_RIGHT,INPUT);
 
 }
 
@@ -238,7 +239,7 @@ void loop() {
     //STOP AND REVERSE, whiskers detected something's right in front of us
     //Turn as well?  Don't want to get stuck in an infinite loop
     driveBackwards();
-    if(whiskerLeft){
+    if(WHISKER_LEFT){
       shiftRight();
       shiftRight();
       shiftRight();
@@ -260,7 +261,7 @@ void loop() {
     //might have an issue with the search function.  Not entirely sure how to implement
     //Might want to create a function before this which detects something in front and to the Side
     //if true, turn to 225 or so and go forward, so diagional round the room
-    curr=0
+    int curr=0;
     while(detectLightInit()!=1|| curr!=18){
       if(scanningLeft){
         shiftLeft();
@@ -268,7 +269,7 @@ void loop() {
       else{
         shiftRight();
       }
-      curr++
+      curr++;
     }
     if(detectLightInit()==1){//Not sure if this will keep it centered on the light
       driveForward;
@@ -453,7 +454,7 @@ bool tapePresent(){
 }
 
 bool whiskerLeft(){
-  if(digitalRead(whiskerLeft)==0){
+  if(digitalRead(WHISKER_LEFT)==0){
     return true;
   }
   else{
@@ -463,7 +464,7 @@ bool whiskerLeft(){
 }
 
 bool whiskerRight(){
-  if(digitalRead(whiskerRight)==0){
+  if(digitalRead(WHISKER_RIGHT)==0){
     return true;
   }
   else{
