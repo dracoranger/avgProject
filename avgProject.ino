@@ -557,22 +557,22 @@ bool tapePresent(){
 }
 
 bool whiskerLeft(){
-  if(digitalRead(WHISKER_LEFT)==1){
-    return true;
-  }
-  else{
+  //if(digitalRead(WHISKER_LEFT)==1){
+  //  return true;
+  //}
+  //else{
     return false;
-  }
+  //}
 
 }
 
 bool whiskerRight(){
-  if(digitalRead(WHISKER_RIGHT)==1){
-    return true;
-  }
-  else{
+  //if(digitalRead(WHISKER_RIGHT)==1){
+  //  return true;
+  //}
+  //else{
     return false;
-  }
+  //}
 }
 
 long microsecondsToInches(long microseconds) {
