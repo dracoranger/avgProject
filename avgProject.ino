@@ -295,16 +295,18 @@ void loop() {
       }
       curr++;
     }
+
     if(detectLightInit()==1){//Not sure if this will keep it centered on the light
-      driveForward;
-    }
-    else{
       if(scanningLeft){
         shiftRight();
-        shiftRight();
-        shiftRight();
-        shiftRight();
-        shiftRight();
+      }
+      else{
+        shiftLeft();
+      }
+      driveForwardLong();
+    }
+    else{
+      if(scanningLeft){//This code goes back to 45 degrees or so
         shiftRight();
         shiftRight();
         shiftRight();
@@ -315,15 +317,10 @@ void loop() {
         shiftLeft();
         shiftLeft();
         shiftLeft();
-        shiftLeft();
-        shiftLeft();
-        shiftLeft();
-        shiftLeft();
-        shiftLeft();
       }
       driveForward();
-      scanningLeft= !scanningLeft;
     }
+    scanningLeft= !scanningLeft;
   }
   else if(inchesS-CLO>FAR&&byWall>WALL_SAFE){
     //Discovered a Door.  Go investigate
@@ -341,6 +338,12 @@ void loop() {
       int doit=detectLightInit();
       if(doit==1){//1 counts as a true generally. Not going to deal with the general case
         //decide to continue forward or turn right.  Recommend using inchesS as discriminator
+        shiftRight();
+        shiftRight();
+        shiftRight();
+        shiftRight();
+        scanningLeft=true;
+        isDarkRoom=true;
       }
       else{
         driveBackwardsLong();
@@ -497,9 +500,14 @@ int detectLightInit(){//Detects the level of light and hopefully determines if w
 //10 is arbitrary cutoff
 int detectLightVarian(){
   double input=analogRead(LIGHT_SENSOR);
-  if(input-previousLight<10){ //Needs absolute value
-    previousLight=input;
-    return 0;
+  if(abs(input-previousLight)<10){ //Needs absolute value
+    if(input<previousLight){
+      return 1;
+    }
+    else{
+      previousLight=input;
+      return 0;
+    }
   }
   else{
     return -1;
