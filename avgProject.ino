@@ -429,68 +429,68 @@ void loop() {
 
 int turnRight(){
   for(int i=0; i<T_90_TURN; i++){
-    right.writeMicroseconds(2000);
-    left.writeMicroseconds(1000);
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(2000);
   }
   return 1;
 }
 
 int shiftRight(){
   for(int i=0; i<T_90_TURN/9; i++){
-    right.writeMicroseconds(2000);
-    left.writeMicroseconds(1000);
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(2000);
   }
   return 1;
 }
 
 int turnLeft(){
   for(int i=0; i<T_90_TURN; i++){
-    right.writeMicroseconds(1000);
-    left.writeMicroseconds(2000);
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(1000);
   }
   return 1;
 }
 
 int shiftLeft(){
   for(int i=0; i<T_90_TURN/9; i++){
-    right.writeMicroseconds(1000);
-    left.writeMicroseconds(2000);
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(1000);
   }
   return 1;
 }
 
 int driveForward(){
   for(int i=0; i<T_1_FOOT; i++){
-    right.writeMicroseconds(1000);
-    left.writeMicroseconds(1000);
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(2000);
   }
   return 1;
 }
 int driveForwardLong(){
   for(int i=0; i<T_1_FOOT*2; i++){
-    right.writeMicroseconds(1000);
-    left.writeMicroseconds(1000);
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(2000);
   }
   return 1;
 }
 int driveForward4Ft(){
   for(int i=0; i<T_4_FEET; i++){
-    right.writeMicroseconds(1000);
-    left.writeMicroseconds(1000);
+    right.writeMicroseconds(2000);
+    left.writeMicroseconds(2000);
   }
   return 1;
 }
 int driveBackwards(){
   for(int i=0; i<T_1_FOOT; i++){
-    right.writeMicroseconds(2000);
-    left.writeMicroseconds(2000);
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(1000);
   }
   return 1;
 }
 int driveBackwardsLong(){
   for(int i=0; i<T_1_FOOT*2; i++){
-    right.writeMicroseconds(2000);
-    left.writeMicroseconds(2000);
+    right.writeMicroseconds(1000);
+    left.writeMicroseconds(1000);
   }
   return 1;
 }
