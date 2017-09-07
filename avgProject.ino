@@ -238,7 +238,11 @@ void loop() {
   Serial.print(digitalRead(LIGHT_SENSOR));
   Serial.print(" IR input Side: ");
   Serial.print(digitalRead(TAPE_DETECT));
-  Serial.print(" ");
+  Serial.print(" Front: ");
+  Serial.print(inchesF);
+  Serial.print("in, ");
+  Serial.print(cmF);
+  Serial.print("cm. Side ");
   Serial.print(inchesF);
   Serial.print("in, ");
   Serial.print(cmF);
@@ -275,6 +279,7 @@ void loop() {
       shiftLeft();
       shiftLeft();
     }
+    Serial.print("Hit whiskers \n");
   }
   else if(isDarkRoom){
     //Head Towards the Light
@@ -321,6 +326,7 @@ void loop() {
       driveForward();
     }
     scanningLeft= !scanningLeft;
+    Serial.print("In the dark \n");
   }
   else if(inchesS-CLO>FAR&&byWall>WALL_SAFE){
     //Discovered a Door.  Go investigate
@@ -351,10 +357,12 @@ void loop() {
         driveForwardLong();
       }
     }
+    Serial.print("Found a door \n");
   }
   else if(inchesF>FAR_FRONT&&inchesS>FAR_SIDE&&byWall==0){
     //in the middle of the room Go forward
     driveForward();
+    Serial.print("Middle of a room \n");
   }
   else if((inchesF<FAR_FRONT||tapePresent()) && byWall==0){
     //reached the wall for the first time, turn left
@@ -363,24 +371,28 @@ void loop() {
     turnLeft();
     driveForward();
     byWall=byWall+1;
+    Serial.print("Found a wall, first time \n");
   }
   else if(inchesF>FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||alongVirtual)){
     //discovered the wall, continue along it in relative safety
     //increase byWall
     driveForward();
     byWall=byWall+1;
+    Serial.print("In safe space \n");
   }
   else if(inchesF>FAR_FRONT && inchesS<CLO){
     //discovered the wall, continue along it, shift to the left to prevent running into it
     shiftLeft();
     driveForward();
     byWall=byWall+1;
+    Serial.print("Shifting left \n");
   }
   else if(inchesF>FAR_FRONT && inchesS>FAR && inchesS<FAR_SIDE){
     //discovered the wall, continue along it, shifted to the right to prevent driving too far away
     shiftRight();
     driveForward();
     byWall=byWall+1;
+    Serial.print("Shifting right \n");
   }
   else if(inchesF<FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent()) && byWall> WALL_SAFE){
     //discovered a turn, so lets turn
@@ -390,6 +402,7 @@ void loop() {
       alongVirtual=false;
     }
     byWall=byWall+1;
+    Serial.print("Turning \n");
   }
   else{
     //we suddenly found a large gap or something early on.
@@ -400,6 +413,7 @@ void loop() {
     byWall=0;
     alongVirtual=false;
     driveForward();
+    Serial.print("Everything is wrong \n");
   }
  }
 
