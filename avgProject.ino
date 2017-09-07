@@ -67,13 +67,13 @@ void stopRobot() {
 
 // this constant won't change. It's the pin number of the sensor's output:
 //Probably should capitalize
-const int pingFront = 7;
+const int pingFront = 6;
 const int pingSide = 8;
 const int WHISKER_LEFT = 2;
-const int WHISKER_RIGHT = 3;
+const int WHISKER_RIGHT = 7;
 const int LIGHT_SENSOR = 5;
-const int TAPE_DETECT= 9;
-const int IR_LED=6;
+const int TAPE_DETECT= 3;
+const int IR_LED=4;
 
 // Sets up bool for light
 bool isDarkRoom=false;
@@ -118,8 +118,8 @@ void setup() {
   pinMode(WHISKER_LEFT,INPUT);
   pinMode(WHISKER_RIGHT,INPUT);
   pinMode(IR_LED,OUTPUT);
-  right.attach(13);   // attaches the servo on pin 10 to the servo object
-  left.attach(14);
+  right.attach(12);   // attaches the servo on pin 10 to the servo object
+  left.attach(13);
   //This is one of the servo ports on the Parallax shield. Others are 11, 12, and 13
   Serial.begin(9600);
   for (i = 0; i < dur; i++ )
