@@ -82,10 +82,12 @@ bool isDarkRoom=false;
 //used to differentiate between the wall and random obsticles
 int byWall=0;
 bool scanningLeft=false;
+double previousLight=0;
+bool alongVirtual= false;
 
 
 //Constant values, used to clean up if statements rather than worry about them being inconsistent
-const int WALL_SAFE=5; //point of certainty that we're near a wall
+const int WALL_SAFE=20; //point of certainty that we're near a wall
 const int FAR=18; //Side far
 const int CLO=12; //Side close
 const int FAR_FRONT=24; //Front close
@@ -116,8 +118,8 @@ void setup() {
   pinMode(WHISKER_LEFT,INPUT);
   pinMode(WHISKER_RIGHT,INPUT);
   pinMode(IR_LED,OUTPUT);
-  right.attach(10);   // attaches the servo on pin 10 to the servo object
-  left.attach(11);
+  right.attach(13);   // attaches the servo on pin 10 to the servo object
+  left.attach(14);
   //This is one of the servo ports on the Parallax shield. Others are 11, 12, and 13
   Serial.begin(9600);
   for (i = 0; i < dur; i++ )
@@ -191,11 +193,12 @@ void loop() {
   delay(.25);
   digitalWrite(IR_LED, LOW);
   delay(.25);
+  tapePresent();
   digitalWrite(IR_LED, HIGH);
   delay(.25);
   digitalWrite(IR_LED, LOW);
   delay(.25);
-  tapePresent();
+
 
   pinMode(pingFront, OUTPUT);
   digitalWrite(pingFront, LOW);
@@ -283,7 +286,7 @@ void loop() {
     //Might want to create a function before this which detects something in front and to the Side
     //if true, turn to 225 or so and go forward, so diagional round the room
     int curr=0;
-    while(detectLightInit()!=1|| curr!=18){
+    while(detectLightInit()!=1|| curr!=18){//KUDGEY AS HELL
       if(scanningLeft){
         shiftLeft();
       }
@@ -301,8 +304,18 @@ void loop() {
         shiftRight();
         shiftRight();
         shiftRight();
+        shiftRight();
+        shiftRight();
+        shiftRight();
+        shiftRight();
+        shiftRight();
       }
       else{
+        shiftLeft();
+        shiftLeft();
+        shiftLeft();
+        shiftLeft();
+        shiftLeft();
         shiftLeft();
         shiftLeft();
         shiftLeft();
@@ -312,28 +325,35 @@ void loop() {
       scanningLeft= !scanningLeft;
     }
   }
-  else if(inchesS-CLO>FAR&&byWall>WALL_SAFE&&!tapePresent()){
+  else if(inchesS-CLO>FAR&&byWall>WALL_SAFE){
     //Discovered a Door.  Go investigate
     //Value of the distance between the robot and the wall suddenly increased by at least 18 inches, either a door or we got around a large obsticle
     //Need to worry about the large obsticle, hopefully byWall is helpful here
     //detect dark room and toggle isDarkRoom
     turnRight();//Or left...
-    driveForwardLong();//clear doorframe
-    int doit=detectLightInit();
-    if(doit==1){//1 counts as a true generally. Not going to deal with the general case
-      //decide to continue forward or turn right.  Recommend using inchesS as discriminator
+    if(tapePresent()){
+      turnLeft();
+      driveForwardLong();
+      alongVirtual=false;
     }
     else{
-      driveBackwardsLong();
-      turnLeft();//reverse the turn right
-      driveForwardLong();
+      driveForwardLong();//clear doorframe
+      int doit=detectLightInit();
+      if(doit==1){//1 counts as a true generally. Not going to deal with the general case
+        //decide to continue forward or turn right.  Recommend using inchesS as discriminator
+      }
+      else{
+        driveBackwardsLong();
+        turnLeft();//reverse the turn right
+        driveForwardLong();
+      }
     }
   }
   else if(inchesF>FAR_FRONT&&inchesS>FAR_SIDE&&byWall==0){
     //in the middle of the room Go forward
     driveForward();
   }
-  else if(inchesF<FAR_FRONT && byWall==0){
+  else if((inchesF<FAR_FRONT||tapePresent()) && byWall==0){
     //reached the wall for the first time, turn left
     //Need to alter based on where turning brings us in relation to a wall
     driveForward();
@@ -341,7 +361,7 @@ void loop() {
     driveForward();
     byWall=byWall+1;
   }
-  else if(inchesF>FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||tapePresent())){
+  else if(inchesF>FAR_FRONT && ((inchesS>CLO && inchesS<FAR)||alongVirtual)){
     //discovered the wall, continue along it in relative safety
     //increase byWall
     driveForward();
@@ -363,6 +383,9 @@ void loop() {
     //discovered a turn, so lets turn
     turnLeft();
     driveForward();
+    if(!tapePresent()){
+      alongVirtual=false;
+    }
     byWall=byWall+1;
   }
   else{
@@ -372,6 +395,7 @@ void loop() {
     //Really need to test this, probably the best idea to revert to careful without assumptions in this case.
     //May want to check how much byWall there is, because we could lose a good amount of certainty otherwise.
     byWall=0;
+    alongVirtual=false;
     driveForward();
   }
  }
@@ -384,7 +408,7 @@ void loop() {
  */
 
  const int lTime = 6000;
- const int sTime= lTime/4;
+ const int stime= lTime/4;
 
 int turnRight(){
   for(int i=0; i<T_90_TURN; i++){
@@ -459,8 +483,8 @@ int driveBackwardsLong(){
  * You need to give at least a comment here.  Hopefully many more
  */
 int detectLightInit(){//Detects the level of light and hopefully determines if we're in the right room
-
-  if(true){//TODO holder value.
+  double input=analogRead(LIGHT_SENSOR);
+  if(input>10.0){//TODO holder value.
 
     return -1;
   }
@@ -470,16 +494,44 @@ int detectLightInit(){//Detects the level of light and hopefully determines if w
   }
 }
 
+//10 is arbitrary cutoff
+int detectLightVarian(){
+  double input=analogRead(LIGHT_SENSOR);
+  if(input-previousLight<10){ //Needs absolute value
+    previousLight=input;
+    return 0;
+  }
+  else{
+    return -1;
+  }
+
+}
+
 bool tapePresent(){
   //Detects whether or not there's tape on the ground
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+
   int input=digitalRead(TAPE_DETECT);
   if(input==0){
     //Light detected, no tape
     return false;
   }
   else{
+    alongVirtual=true;
     return true;
   }
+
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
+  digitalWrite(IR_LED, HIGH);
+  delay(.25);
+  digitalWrite(IR_LED, LOW);
+  delay(.25);
 }
 
 bool whiskerLeft(){
